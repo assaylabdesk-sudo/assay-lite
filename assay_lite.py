@@ -199,8 +199,9 @@ def run_test(px: pd.DataFrame, sig: pd.DataFrame, name: str, h: int, home: Home,
     floor = floor_at(cached["curve"], bar)[1] if cached else None
     # Calibration noise is fresh every day; a factor-structured signal's daily IC is more
     # dispersed, so the same mean IC is harder to detect. Scale up, never down.
-    raw = r["sd"] / cached["noise_sd"] if cached and not math.isnan(r["sd"]) else 1.0
-    ratio, eff = max(1.0, raw), (floor[1] * max(1.0, raw) if floor else None)
+    raw = r["sd"] / cached["noise_sd"] if cached and not math.isnan(r["sd"]) else None
+    ratio = max(1.0, raw) if raw is not None else None        # no floor: nothing to scale
+    eff = floor[1] * ratio if floor and ratio else None
     verdict, why = decide(r, bar, cached is not None, eff, h)
     unscaled = decide(r, bar, cached is not None, floor[1] if floor else None, h)[0]
     home.append({"kind": "result", "trial": n, "ts": now(), "verdict": verdict, "ic": r["ic"],
@@ -277,18 +278,18 @@ def show_floor(curve: dict, bar: float, h: int) -> None:
         note = "   <- false-positive rate; should be ~0" if b == 0 else ""
         print(f"{b:>7.3f}{ic:>+13.4f}{pw:>10.0%}{note}")
     print("FLOOR: " + (f"beta >= {floor[0]:.3f}, measured IC {floor[1]:.4f} "
-                       f"({POWER_TARGET:.0%} power at bar {bar:.5f}, horizon {h})"
+                       f"({POWER_TARGET:.0%} power at the NEXT test's bar p < {bar:.5f}, horizon {h})"
                        if floor else f"not reached in this grid at bar {bar:.5f}; widen --betas"))
 
 
 def cmd_floor(a) -> int:
     home, px = Home(a.home), load_prices(a.prices)
     key = f"{file_id(a.prices)}:h{a.horizon}"
-    nxt = bar_for(home.trials() + 1)
+    n = home.trials()
     print(f"prices {a.prices}: {px.shape[1]} assets x {px.shape[0]} days, horizon {a.horizon}, "
           f"{a.reps} reps per beta")
-    print(f"trials so far {home.trials()} -> the next test faces bar p < {nxt:.5f}")
-    show_floor(run_floor(px, a.horizon, home, key, a.betas, a.reps, a.seed), nxt, a.horizon)
+    print("\n".join(bar_lines(n)))
+    show_floor(run_floor(px, a.horizon, home, key, a.betas, a.reps, a.seed), bar_for(n + 1), a.horizon)
     print("Cached. `test` recomputes power at whatever bar it faces.")
     return 0
 
@@ -301,10 +302,10 @@ def cmd_test(a) -> int:
     r = run_test(px, sig, a.name, a.horizon, home, f"{file_id(a.prices)}:h{a.horizon}",
                  file_id(a.signal))
     print(f"trial #{r['trial']} registered BEFORE computing: {a.name} (horizon {a.horizon})")
-    print(f"bar = {ALPHA} / {r['trial']} trials = {r['bar']:.5f}")
+    print(f"this trial (#{r['trial']}) faces: p < {r['bar']:.5f}   ({ALPHA} / {r['trial']} trials charged)")
     print(f"mean IC {r['ic']:+.4f}   t {r['t']:.2f}   p {r['p']:.5f}   "
           f"({r['n']} non-overlapping days)")
-    if r["floor"]:
+    if r["floor"] and r["ratio"]:
         f, e = r["floor"][1], r["eff_floor"]
         print(f"floor at this bar: IC {f:.4f} (floor run {r['floor_created'][:10]})")
         why = ("factor structure: fewer independent bets" if r["ratio"] >= 1.10
@@ -318,24 +319,39 @@ def cmd_test(a) -> int:
     return 0
 
 
-def cmd_registry(a) -> int:
-    home = Home(a.home)
+def bar_lines(n: int) -> list[str]:
+    """Two bars, two lines: an agent once read 'current ...; next ...' and quoted the
+    wrong one."""
+    last = (f"bar for the last trial charged (#{n}): p < {bar_for(n):.5f}" if n
+            else "no trials charged yet")
+    return [last, f"the NEXT test will face: p < {bar_for(n + 1):.5f}"]
+
+
+def _fmt(v, spec: str) -> str:
+    return "-" if v is None or (isinstance(v, float) and math.isnan(v)) else format(v, spec)
+
+
+def registry_lines(home: Home) -> list[str]:
     recs = home.records()
     results = {r["trial"]: r for r in recs if r["kind"] == "result"}
     trials = [r for r in recs if r["kind"] == "trial"]
-    print(f"{'#':>3}  {'registered (UTC)':<20}{'name':<20}{'h':>3}  {'verdict':<12}"
-          f"{'IC':>9}{'p':>10}{'bar then':>10}")
+    out = [f"{'#':>3}  {'registered (UTC)':<17}{'name':<14}{'h':>2}  {'verdict':<12}{'IC':>8}"
+           f"{'p':>9}{'bar':>9}{'floor':>8}{'ratio':>7}{'eff.floor':>10}"]
     for t in trials:
         r = results.get(t["n"], {})
-        ic = f"{r['ic']:+.4f}" if r.get("ic") is not None and not math.isnan(r["ic"]) else "-"
-        p, bar = (f"{r['p']:.5f}", f"{r['bar']:.5f}") if r else ("-", "-")
-        print(f"{t['n']:>3}  {t['ts'][:19]:<20}{t['name'][:19]:<20}{t['horizon']:>3}  "
-              f"{r.get('verdict', 'NO RESULT'):<12}{ic:>9}{p:>10}{bar:>10}")
-    n = len(trials)
-    print(f"trials charged: {n} -> current bar p < {bar_for(n):.5f}; "
-          f"the next test faces {bar_for(n + 1):.5f}")
-    print("Append-only. There is no delete or refund: a re-run of the same signal is a new "
-          "look at the data and is charged again.")
+        g = r.get
+        out.append(f"{t['n']:>3}  {t['ts'][:16]:<17}{t['name'][:13]:<14}{t['horizon']:>2}  "
+                   f"{g('verdict', 'NO RESULT'):<12}{_fmt(g('ic'), '+.4f'):>8}{_fmt(g('p'), '.5f'):>9}"
+                   f"{_fmt(g('bar'), '.5f'):>9}{_fmt(g('floor_ic'), '.4f'):>8}"
+                   f"{_fmt(g('dispersion_ratio'), '.2f'):>7}{_fmt(g('effective_floor_ic'), '.4f'):>10}")
+    out += bar_lines(len(trials))
+    out.append("Append-only. There is no delete or refund: a re-run of the same signal is a new "
+               "look at the data and is charged again.")
+    return out
+
+
+def cmd_registry(a) -> int:
+    print("\n".join(registry_lines(Home(a.home))))
     return 0
 
 

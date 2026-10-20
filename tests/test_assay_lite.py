@@ -189,6 +189,33 @@ def test_scaling_turns_a_wrong_fail_into_undecidable():
     assert al.decide(r, 0.025, True, floor_ic * ratio, 1)[0] == "UNDECIDABLE"
 
 
+def test_registry_table_shows_floor_ratio_and_scaled_floor(tmp_path, demo_small):
+    px, strong, _ = demo_small
+    home = al.Home(str(tmp_path))
+    al.run_test(px, strong, "nofloor", 1, home, "k:h1", "s")       # no floor yet
+    al.run_floor(px, 1, home, "k:h1", [0.0, 0.01, 0.02, 0.03], reps=10, seed=7)
+    r = al.run_test(px, strong, "floored", 1, home, "k:h1", "s")
+    header, row1, row2 = al.registry_lines(home)[:3]
+    assert header.split()[-3:] == ["floor", "ratio", "eff.floor"]
+    assert row1.split()[-3:] == ["-", "-", "-"]
+    assert row2.split()[-3:] == [f"{r['floor'][1]:.4f}", f"{r['ratio']:.2f}",
+                                 f"{r['eff_floor']:.4f}"]
+
+
+def test_last_and_next_bar_are_on_separate_unambiguous_lines(tmp_path, demo_small):
+    px, strong, _ = demo_small
+    home = al.Home(str(tmp_path))
+    assert al.bar_lines(0) == ["no trials charged yet", "the NEXT test will face: p < 0.05000"]
+    for _ in range(3):
+        al.run_test(px, strong, "s", 1, home, "k:h1", "s")
+    lines = al.registry_lines(home)
+    last = [x for x in lines if x.startswith("bar for the last trial charged")]
+    nxt = [x for x in lines if x.startswith("the NEXT test will face")]
+    assert last == ["bar for the last trial charged (#3): p < 0.01667"]
+    assert nxt == ["the NEXT test will face: p < 0.01250"]
+    assert not any("0.01667" in x and "0.01250" in x for x in lines)
+
+
 def test_breadth_participation_ratio():
     rng = np.random.default_rng(0)
     common = rng.normal(0, 0.01, (500, 1))

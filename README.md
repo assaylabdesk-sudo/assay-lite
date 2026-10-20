@@ -54,7 +54,7 @@ uv run assay_lite.py registry
 | `breadth` | Effective number of independent bets, from the eigenvalues of the return correlation matrix: (Σλ)² / Σλ². Forty assets that move together are a handful of bets, not forty. |
 | `floor` | Injects a synthetic signal of known strength β into your real forward returns, many times per β, and counts how often the same code that tests your signal catches it. The floor is the smallest β caught 80% of the time, and the IC it reads out as. |
 | `test` | Registers the trial, then computes the mean daily Spearman IC, its t-statistic and a two-sided p. Prints PASS, UNDECIDABLE or FAIL. |
-| `registry` | Every trial ever charged, its result, the bar it faced, and the current bar. |
+| `registry` | Every trial ever charged: its result, the bar it faced, the calibrated floor, the dispersion ratio and the scaled floor. Then, on two separate lines, the bar the last trial faced and the bar the next test will face. |
 
 State lives in `./.assay-lite/` (change it with `--home`).
 
@@ -105,16 +105,16 @@ undetectable effects FAIL.
 
 So `test` measures the spread of your signal's daily IC, divides it by the spread
 under the calibration noise, and multiplies the floor by that ratio. It never
-shrinks the floor below the calibrated one. Measured on the demo data:
+shrinks the floor below the calibrated one. As printed by `demo`:
 
-| signal | daily-IC spread vs calibration noise |
-|---|---|
-| planted signals (fresh noise each day) | 0.98 and 1.01 |
-| trailing 20-day return, no planted effect | 1.17 |
-| sector tilt redrawn every 63 days, no planted effect | 1.68 |
+| demo signal | daily-IC spread vs calibration noise | floor used |
+|---|---|---|
+| strong (planted, fresh noise each day) | 0.98, clamped to 1.00 | 0.0103 |
+| weak (planted, fresh noise each day) | 1.01 | 0.0104 |
+| sector (tilt redrawn every 63 days, no planted effect) | 1.79 | 0.0184 |
 
-A sector-tilt signal on this data needs an IC about 1.7 times the calibrated floor
-before a miss can be called FAIL.
+The sector signal needs an IC about 1.8 times the calibrated floor before a miss
+can be called FAIL.
 
 ## Limitations
 

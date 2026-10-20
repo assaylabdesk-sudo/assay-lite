@@ -18,10 +18,13 @@ instrument measure itself before it measures anything else.
    uv run assay_lite.py floor --prices prices.csv --horizon 1
    ```
 
-2. **Compare p only with the registry's bar, never with 0.05.** The bar is 0.05
-   divided by every trial ever charged in this registry. Read it from the output
-   of `test` or `registry`. Do not quote 0.05, and do not quote a bar from memory:
-   it changes every time a test runs.
+2. **Never compare p with a conventional 0.05; the only bars are the ones the
+   registry prints.** The bar is 0.05 divided by every trial ever charged in this
+   registry, so the first trial's bar is 0.05 and every later one is stricter.
+   Read it from `test` ("this trial (#N) faces") or `registry` ("bar for the last
+   trial charged" and "the NEXT test will face" are two different bars; quote the
+   one that matches the question). Do not quote a bar from memory: it changes every
+   time a test runs.
 
 3. **Trials are never refunded.** `test` writes the trial to the registry before
    it computes anything. Re-running the same signal, tweaking a parameter, or
@@ -68,5 +71,5 @@ same mean IC is harder to detect. `test` prints the ratio of the signal's daily-
 spread to the calibration noise and scales the floor up by it, never down. When
 you report a result, quote the scaled floor, not the calibrated one, and mention
 the ratio when it is above 1: it says the signal has fewer independent bets than
-the asset count suggests. On the demo data a sector tilt redrawn every 63 days
-measured 1.68 and a trailing 20-day return 1.17.
+the asset count suggests. In `demo`, the sector tilt (redrawn every 63 days, no
+planted effect) prints 1.79, and the two planted signals print 0.98 and 1.01.
