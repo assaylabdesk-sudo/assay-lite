@@ -1,0 +1,5 @@
+# created when you run it; your registry is yours, not the repo's
+demo/
+.assay-lite/
+__pycache__/
+.pytest_cache/
