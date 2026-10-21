@@ -1,0 +1,10 @@
+{
+  "name": "assay-lite",
+  "version": "0.1.0",
+  "description": "Calibrate first, then measure: a skill that makes Claude measure a dataset's detection floor before reading any trading-signal result, charge every test to an append-only registry, and report too-small-to-see as UNDECIDABLE rather than 'no effect'.",
+  "author": { "name": "Assay Lab" },
+  "homepage": "https://github.com/assaylabdesk-sudo/assay-lite",
+  "repository": "https://github.com/assaylabdesk-sudo/assay-lite",
+  "license": "MIT",
+  "keywords": ["quant", "backtesting", "statistics", "multiple-testing", "trading-research"]
+}

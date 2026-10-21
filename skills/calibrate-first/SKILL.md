@@ -8,6 +8,14 @@ description: Use when testing whether a trading signal, factor or backtest resul
 A result is only as good as the instrument that produced it. This skill makes the
 instrument measure itself before it measures anything else.
 
+**Where the tool is.** The commands below assume `assay_lite.py` is in the current
+directory. If it isn't, and this skill was installed as a plugin, run the copy that
+ships with the plugin: `uv run "${CLAUDE_PLUGIN_ROOT}/assay_lite.py" ...`. If neither
+exists, ask the user to download `assay_lite.py` from
+https://github.com/assaylabdesk-sudo/assay-lite. Don't rewrite it. Keep `--home`
+pointed at a folder in the user's project, so the registry belongs to them and not
+to the plugin cache.
+
 ## The four rules
 
 1. **Run `floor` before interpreting any result.** Every dataset has a smallest

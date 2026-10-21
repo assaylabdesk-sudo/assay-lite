@@ -1,0 +1,12 @@
+{
+  "name": "assay-lite",
+  "owner": { "name": "Assay Lab" },
+  "description": "assay-lite: calibrate-first testing for trading signals in Claude Code.",
+  "plugins": [
+    {
+      "name": "assay-lite",
+      "source": "./",
+      "description": "Calibrate-first signal testing: detection floor before results, append-only trial registry, UNDECIDABLE instead of 'no effect'."
+    }
+  ]
+}

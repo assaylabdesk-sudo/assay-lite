@@ -131,8 +131,18 @@ can be called FAIL.
 
 `skills/calibrate-first/SKILL.md` makes Claude Code run `floor` before reading any
 result, compare p only with the registry bar, never suggest resetting the
-registry, and report below-floor results as UNDECIDABLE. Copy the folder into
-`.claude/skills/` in your project.
+registry, and report below-floor results as UNDECIDABLE.
+
+Install it as a plugin:
+
+```
+/plugin marketplace add assaylabdesk-sudo/assay-lite
+/plugin install assay-lite@assay-lite
+```
+
+Or copy `skills/calibrate-first/` into `.claude/skills/` in your project, next to a
+copy of `assay_lite.py`. Either way, the registry is written to `.assay-lite/` in
+the directory you run it from, so it stays in your project.
 
 ## Tests
 

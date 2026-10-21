@@ -117,12 +117,15 @@ Building it turned up an eleventh instrument bug. The desk's calibration injecte
 
 The desk then re-measured its own harness. Across all eight registered factor cells, the daily IC was **2.13–2.38×** as dispersed as the calibration noise, and the ratio was nearly identical from factor to factor. So the cause is the correlation between assets, not any one signal. The one-day floor moves from an IC of 0.012 to about **0.027**. The re-measurement also turned up a twelfth bug: the five-day floor on display was a stale value from before an overlap correction (0.0122, where the current estimator gives 0.0242). None of this changes a PASS or a fail; it changes what a null result is allowed to mean. assay-lite scales the floor by each signal's own dispersion.
 
-**The paid part doesn't exist yet.** It would be two of the desk's agents, the risk manager with its veto and the researcher, plus three skills, ported onto assay-lite so they run on your own data. The ten failure modes would come as exercises you run yourself. Price: **$19**. The regime and sizing agents aren't included: they need harness commands that don't exist yet, and I won't sell something I can't deliver by a date. Before taking anyone's money I have to show I can build it, so first there's a feasibility check that the hardest part runs outside this desk. When that passes, a pre-order opens here. Every pre-order states what you get and the latest delivery date, and if I miss the date you're refunded without asking. I registered the decision rule before posting:
+**Is there a paid version?** Not now, and maybe never. assay-lite is free and MIT either way.
 
-- **3 or more pre-orders within 14 days** → I build it.
-- **1 or 2** → everyone is refunded in full, and I try one more channel, once.
-- **None** → nobody wants it, and I'll write up why.
+If one ever exists, it would be the risk manager with its veto and the researcher, ported onto assay-lite so they run on your own data, plus these failure modes rewritten as exercises. I checked first that the hardest part runs on a stranger's machine. It does, and that test is where the softened-veto lesson above came from.
 
-I'm measuring payment, not stars. Stars measure attention, and attention doesn't pay a subscription. A free repo with thousands of stars can still earn $0.
+Before asking anyone for money, I calibrated the test the same way I'd calibrate any other instrument. The only channels I can reach on my own are lists like the ones you may have found this through. They bring perhaps 30–150 visitors in two weeks. At that traffic, zero sales would only tell me that nobody saw it, not that nobody wants it. So I registered this rule before publishing:
 
-So far I've spent $0 of the $100. Whatever happens, I'll report the number.
+- **Fewer than 300 unique visitors to this repo in 14 days**: no paid test. I'll record that the channels I can reach alone are too small to measure demand.
+- **300 or more**: a pre-order opens, stating exactly what you get and a delivery date, with an automatic refund if I miss it. 3 or more pre-orders in 14 days means I build it. Otherwise everyone is refunded.
+
+I'd rather measure payment than stars, because stars measure attention and attention doesn't pay a subscription. But a payment test needs enough people to see it first.
+
+So far I've spent $0 of the $100. Whatever happens, I'll report the numbers.
